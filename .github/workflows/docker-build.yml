@@ -55,6 +55,10 @@ jobs:
       - name: Install dependencies and generate vendor files
         run: |
           pnpm install --frozen-lockfile
+          # 创建缺失的 vendor CSS 占位文件（避免 postcss 报错）
+          mkdir -p packages/foliate-js/vendor/pdfjs
+          echo "/* placeholder */" > packages/foliate-js/vendor/pdfjs/annotation_layer_builder.css
+          echo "/* placeholder */" > packages/foliate-js/vendor/pdfjs/text_layer_builder.css
           pnpm --filter @readest/readest-app setup-vendors
 
           
