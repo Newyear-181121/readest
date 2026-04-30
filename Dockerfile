@@ -43,7 +43,9 @@ COPY . .
 
 # 🚀 关键修改：在 `build` 阶段使用 `pnpm deploy` 创建独立的部署目录
 # 这里的路径替换为你的子应用名称
-RUN pnpm --filter=@readest/readest-app deploy pruned
+# 使用 legacy 模式部署
+RUN pnpm --filter=@readest/readest-app deploy pruned --legacy
+
 
 # 切换工作目录到被剪枝后的独立应用目录
 WORKDIR /app/pruned/apps/readest-app
