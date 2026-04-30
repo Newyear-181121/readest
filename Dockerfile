@@ -13,12 +13,9 @@ FROM base AS dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm --filter @readest/readest-app setup-vendors
 
-# 修复符号链接问题（针对 foliate-js/node_modules）
-RUN if [ -L /app/packages/foliate-js/node_modules ]; then \
-      cp -rL /app/packages/foliate-js/node_modules /app/packages/foliate-js/node_modules_real && \
-      rm -rf /app/packages/foliate-js/node_modules && \
-      mv /app/packages/foliate-js/node_modules_real /app/packages/foliate-js/node_modules; \
-    fi
+# 修复：创建 foliate-js/node_modules 符号链接，使 COPY 能够找到源路径
+RUN mkdir -p /app/packages/foliate-js && \
+    ln -sf /app/node_modules /app/packages/foliate-js/node_modules
 
 FROM dependencies AS development-stage
 COPY . .
