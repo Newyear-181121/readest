@@ -68,8 +68,10 @@ jobs:
           push: true
           # 镜像标签（tag）
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest      # 打上 latest 标签
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}  # 同时用 commit SHA 打标签
+            # 打上 latest 标签
+            ghcr.io/Newyear-181121/readest:latest
+            # 同时用 commit SHA 打标签
+            ghcr.io/Newyear-181121/readest:${{ github.sha }}
           # 构建参数（ARG）传递
           # 这些参数对应 Dockerfile 中 ARG 指令定义的值
           # 注意：敏感信息（如密钥）应使用 GitHub Secrets 存储，避免泄露
