@@ -22,7 +22,7 @@ env:
   # 容器镜像仓库地址（GitHub Container Registry）
   REGISTRY: ghcr.io
   # 镜像名称，格式: 用户名/仓库名
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: newyear-181121/readest
 
 # 定义要执行的任务
 jobs:
@@ -44,6 +44,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install dependencies and generate vendor files
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @readest/readest-app setup-vendors
+
+          
       # 步骤2: 设置 QEMU（用于跨平台模拟，如在 x86 机器上构建 ARM 镜像）
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
