@@ -77,8 +77,8 @@ jobs:
           tags: |
             # ghcr.io/${{ vars.IMAGE_NAME }}:latest
             # ghcr.io/${{ vars.IMAGE_NAME }}:${{ github.sha }}
-            ghcr.io/${{ github.repository | lower }}:latest
-            ghcr.io/${{ github.repository | lower }}:${{ github.sha }}
+            ghcr.io/newyear-181121/readest:latest
+            ghcr.io/newyear-181121/readest:${{ github.sha }}
           # 构建参数（ARG）传递，对应 Dockerfile 中的 ARG 指令
           # 注意：参数行前不能有 # 注释，否则会被当作无效参数名
           build-args: |
