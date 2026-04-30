@@ -1,43 +1,50 @@
+# ============================================================
 # GitHub Actions 工作流配置文件
 # 文件名: .github/workflows/docker-build.yml
-# 作用: 当满足触发条件时，自动构建 Readest 项目的 Docker 镜像，并推送到 GitHub Container Registry (GHCR)
+# 作用: 手动触发（或自动）构建 Readest 项目的 Docker 镜像
+#       并推送到 GitHub Container Registry (GHCR)
+# ============================================================
 
-# 工作流名称，会在 GitHub Actions 界面显示
-name: 构建docker镜像
+# 工作流名称，在 GitHub Actions 界面显示
+name: 构建 Docker 镜像
 
 # 触发条件配置
 on:
-  # 允许手动触发（在 GitHub 仓库的 Actions 标签页点击 "Run workflow"）
+  # 允许手动触发（在仓库的 Actions 标签页点击 "Run workflow"）
   workflow_dispatch:
 
-  # 当 main 分支有代码推送时自动触发（如果你需要，可以取消注释）
+  # 自动触发：当 main 分支有代码推送时（如需自动构建，取消注释）
   # push:
   #   branches: [ main ]
 
-# 全局环境变量，在所有 job 中可用
+# 全局环境变量，所有 job 中可用
 env:
-  REGISTRY: ghcr.io                                   # 容器镜像仓库地址（GitHub Container Registry）
-  IMAGE_NAME: ${{ github.repository }}                # 镜像名称，格式: 用户名/仓库名，例如 "readest/readest"
+  # 容器镜像仓库地址（GitHub Container Registry）
+  REGISTRY: ghcr.io
+  # 镜像名称，格式: 用户名/仓库名
+  IMAGE_NAME: ${{ github.repository }}
 
-# 定义要执行的任务（一个工作流可以包含多个 job）
+# 定义要执行的任务
 jobs:
-  # 任务 ID，可自定义，这里是 "build"
+  # 任务 ID: build
   build:
-    # 运行环境：最新版的 Ubuntu
+    # 运行环境：最新版 Ubuntu
     runs-on: ubuntu-latest
 
     # 赋予该任务所需的权限
     permissions:
-      contents: read      # 允许读取仓库代码
-      packages: write     # 允许推送镜像到 GHCR（需要写入包权限）
+      # 允许读取仓库代码
+      contents: read   
+      # 允许推送镜像到 GHCR
+      packages: write     
 
     # 任务的具体步骤（按顺序执行）
     steps:
       # 步骤1: 检出代码
       - name: Checkout repository
-        uses: actions/checkout@v4   # 使用 GitHub 官方提供的 checkout action，拉取仓库最新代码
+        uses: actions/checkout@v4
 
-      # 步骤2: 设置 QEMU（用于跨平台模拟，比如在 x86 机器上构建 ARM 镜像）
+      # 步骤2: 设置 QEMU（用于跨平台模拟，如在 x86 机器上构建 ARM 镜像）
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -49,44 +56,34 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}               # 仓库地址：ghcr.io
-          username: ${{ github.actor }}               # 当前触发工作流的用户名
-          password: ${{ secrets.GITHUB_TOKEN }}       # GitHub 自动生成的临时 token，用于身份认证
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # 步骤5: 构建并推送 Docker 镜像
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # 构建上下文路径（默认是仓库根目录，即 Dockerfile 所在目录）
+          # 构建上下文路径（默认为仓库根目录）
           context: .
-          # Dockerfile 文件名（如果你的 Dockerfile 不叫这个名字，请修改）
+          # Dockerfile 文件名（确保与仓库中的文件名一致）
           file: Dockerfile
-          # 目标平台列表：linux/amd64（Intel/AMD 64位）和 linux/arm64（ARM 64位，如树莓派、Mac M1）
-          # 可只保留你需要的平台以加快构建速度
+          # 目标平台列表（可根据需要增减）
           platforms: linux/amd64,linux/arm64
-          # 是否推送镜像到仓库（true 表示推送）
+          # 是否推送镜像到仓库
           push: true
           # 镜像标签（tag）
+          # 注意：tag 行前不能有 # 注释，否则会被当作参数传递
           tags: |
-            # 打上 latest 标签
-            ghcr.io/Newyear-181121/readest:latest
-            # 同时用 commit SHA 打标签
-            ghcr.io/Newyear-181121/readest:${{ github.sha }}
-          # 构建参数（ARG）传递
-          # 这些参数对应 Dockerfile 中 ARG 指令定义的值
-          # 注意：敏感信息（如密钥）应使用 GitHub Secrets 存储，避免泄露
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          # 构建参数（ARG）传递，对应 Dockerfile 中的 ARG 指令
+          # 注意：参数行前不能有 # 注释，否则会被当作无效参数名
           build-args: |
-            # Supabase 项目 URL（例如 https://xxxxx.supabase.co）
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            # Supabase 匿名密钥（用于前端访问）
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-            # 应用平台标识，默认 "web"
             NEXT_PUBLIC_APP_PLATFORM=${{ secrets.NEXT_PUBLIC_APP_PLATFORM || 'web' }}
-            # API 基础地址，如果没有提供则留空（后续可能需要）
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL || '' }}
-            # 对象存储类型，默认 "local"（也可用 "supabase"）
             NEXT_PUBLIC_OBJECT_STORAGE_TYPE=${{ secrets.NEXT_PUBLIC_OBJECT_STORAGE_TYPE || 'local' }}
-            # 存储固定配额（MB），默认 500
             NEXT_PUBLIC_STORAGE_FIXED_QUOTA=${{ secrets.NEXT_PUBLIC_STORAGE_FIXED_QUOTA || '500' }}
-            # 翻译固定配额（如有需要）
             NEXT_PUBLIC_TRANSLATION_FIXED_QUOTA=${{ secrets.NEXT_PUBLIC_TRANSLATION_FIXED_QUOTA || '' }}
