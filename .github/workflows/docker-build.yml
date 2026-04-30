@@ -75,8 +75,10 @@ jobs:
           # 镜像标签（tag）
           # 注意：tag 行前不能有 # 注释，否则会被当作参数传递
           tags: |
-            ghcr.io/${{ vars.IMAGE_NAME }}:latest
-            ghcr.io/${{ vars.IMAGE_NAME }}:${{ github.sha }}
+            # ghcr.io/${{ vars.IMAGE_NAME }}:latest
+            # ghcr.io/${{ vars.IMAGE_NAME }}:${{ github.sha }}
+            ghcr.io/${{ github.repository | lower }}:latest
+            ghcr.io/${{ github.repository | lower }}:${{ github.sha }}
           # 构建参数（ARG）传递，对应 Dockerfile 中的 ARG 指令
           # 注意：参数行前不能有 # 注释，否则会被当作无效参数名
           build-args: |
