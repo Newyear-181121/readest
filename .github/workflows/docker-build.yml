@@ -3,7 +3,7 @@
 # 作用: 当满足触发条件时，自动构建 Readest 项目的 Docker 镜像，并推送到 GitHub Container Registry (GHCR)
 
 # 工作流名称，会在 GitHub Actions 界面显示
-name: Build Readest Docker Image
+name: 构建docker镜像
 
 # 触发条件配置
 on:
