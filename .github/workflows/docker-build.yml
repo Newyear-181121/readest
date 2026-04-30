@@ -55,11 +55,20 @@ jobs:
       - name: Install dependencies and generate vendor files
         run: |
           pnpm install --frozen-lockfile
-          # 创建缺失的 vendor CSS 占位文件（避免 postcss 报错）
+          # 创建占位 CSS 文件
           mkdir -p packages/foliate-js/vendor/pdfjs
           echo "/* placeholder */" > packages/foliate-js/vendor/pdfjs/annotation_layer_builder.css
           echo "/* placeholder */" > packages/foliate-js/vendor/pdfjs/text_layer_builder.css
+          # 执行 vendor 生成
           pnpm --filter @readest/readest-app setup-vendors
+          # ★ 关键修复：把符号链接的 node_modules 展开为真实目录（供 Docker COPY 使用）
+          cp -rL packages/foliate-js/node_modules packages/foliate-js/node_modules_real 2>/dev/null || true
+          rm -rf packages/foliate-js/node_modules
+          mv packages/foliate-js/node_modules_real packages/foliate-js/node_modules
+          # 同理处理其他可能缺失的 node_modules 路径（可选）
+          cp -rL apps/readest-app/node_modules apps/readest-app/node_modules_real 2>/dev/null || true
+          rm -rf apps/readest-app/node_modules
+          mv apps/readest-app/node_modules_real apps/readest-app/node_modules
 
           
       # 步骤2: 设置 QEMU（用于跨平台模拟，如在 x86 机器上构建 ARM 镜像）
